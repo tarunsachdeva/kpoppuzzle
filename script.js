@@ -8,6 +8,8 @@ class KPopPuzzleGame {
         this.timerInterval = null;
         this.moveCount = 0;
         this.gameStarted = false;
+        this.showNumbers = true;
+        this.gridSize = 4; // 3 or 4
         
         // Available images - will be populated dynamically
         this.availableImages = [];
@@ -24,7 +26,9 @@ class KPopPuzzleGame {
     }
     
     async initializeGame() {
+        this.loadSettings();
         this.setupEventListeners();
+        this.setupKeyboardControls();
         await this.loadAvailableImages();
         this.createSampleImages();
         this.showScreen('splash-screen');
@@ -55,7 +59,29 @@ class KPopPuzzleGame {
         
         // Game controls
         document.getElementById('shuffle-btn').addEventListener('click', () => {
-            this.shufflePuzzle();
+            this.startGame();
+        });
+        
+        document.getElementById('toggle-numbers').addEventListener('change', (e) => {
+            this.showNumbers = e.target.checked;
+            this.saveSettings();
+            this.updateNumbersDisplay();
+        });
+        
+        document.getElementById('grid-3x3').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                this.gridSize = 3;
+                this.saveSettings();
+                this.initializePuzzle();
+            }
+        });
+        
+        document.getElementById('grid-4x4').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                this.gridSize = 4;
+                this.saveSettings();
+                this.initializePuzzle();
+            }
         });
         
         // Modal buttons
@@ -72,6 +98,99 @@ class KPopPuzzleGame {
         document.getElementById('clear-scores').addEventListener('click', () => {
             this.clearLeaderboard();
         });
+    }
+    
+    setupKeyboardControls() {
+        document.addEventListener('keydown', (e) => {
+            // Only handle keyboard controls when in game screen and game has started
+            if (this.currentScreen !== 'game-screen' || !this.gameStarted) {
+                return;
+            }
+            
+            const emptyRow = this.emptyTilePosition.row;
+            const emptyCol = this.emptyTilePosition.col;
+            let targetRow = emptyRow;
+            let targetCol = emptyCol;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                    targetRow = emptyRow + 1; // Move tile from below into empty space
+                    break;
+                case 'ArrowDown':
+                    targetRow = emptyRow - 1; // Move tile from above into empty space
+                    break;
+                case 'ArrowLeft':
+                    targetCol = emptyCol + 1; // Move tile from right into empty space
+                    break;
+                case 'ArrowRight':
+                    targetCol = emptyCol - 1; // Move tile from left into empty space
+                    break;
+                default:
+                    return; // Don't prevent default for other keys
+            }
+            
+            // Check if target position is valid
+            if (targetRow >= 0 && targetRow < this.gridSize && 
+                targetCol >= 0 && targetCol < this.gridSize) {
+                const targetPosition = targetRow * this.gridSize + targetCol;
+                this.moveTile(targetPosition);
+                e.preventDefault(); // Prevent page scrolling
+            }
+        });
+    }
+    
+    startGame() {
+        this.shufflePuzzle();
+        this.hideStartOverlay();
+        this.gameStarted = true;
+        this.startTimer();
+    }
+    
+    hideStartOverlay() {
+        const overlay = document.getElementById('start-overlay');
+        overlay.classList.add('hidden');
+    }
+    
+    showStartOverlay() {
+        const overlay = document.getElementById('start-overlay');
+        overlay.classList.remove('hidden');
+    }
+    
+    loadSettings() {
+        // Load settings from sessionStorage
+        const showNumbers = sessionStorage.getItem('kpop-puzzle-show-numbers');
+        if (showNumbers !== null) {
+            this.showNumbers = showNumbers === 'true';
+        }
+        
+        const gridSize = sessionStorage.getItem('kpop-puzzle-grid-size');
+        if (gridSize !== null) {
+            this.gridSize = parseInt(gridSize);
+        }
+    }
+    
+    saveSettings() {
+        // Save settings to sessionStorage
+        sessionStorage.setItem('kpop-puzzle-show-numbers', this.showNumbers.toString());
+        sessionStorage.setItem('kpop-puzzle-grid-size', this.gridSize.toString());
+    }
+    
+    updateNumbersDisplay() {
+        const puzzleGrid = document.getElementById('puzzle-grid');
+        if (this.showNumbers) {
+            puzzleGrid.classList.remove('hide-numbers');
+        } else {
+            puzzleGrid.classList.add('hide-numbers');
+        }
+    }
+    
+    updateSettingsUI() {
+        // Update checkbox
+        document.getElementById('toggle-numbers').checked = this.showNumbers;
+        
+        // Update radio buttons
+        document.getElementById('grid-3x3').checked = (this.gridSize === 3);
+        document.getElementById('grid-4x4').checked = (this.gridSize === 4);
     }
     
     async loadAvailableImages() {
@@ -345,7 +464,8 @@ class KPopPuzzleGame {
     
     initializePuzzle() {
         this.puzzleState = [];
-        this.emptyTilePosition = { row: 3, col: 3 };
+        const totalTiles = this.gridSize * this.gridSize;
+        this.emptyTilePosition = { row: this.gridSize - 1, col: this.gridSize - 1 };
         this.timer = 0;
         this.moveCount = 0;
         this.gameStarted = false;
@@ -354,13 +474,16 @@ class KPopPuzzleGame {
             clearInterval(this.timerInterval);
         }
         
-        // Initialize puzzle state (0-14 for tiles, 15 for empty)
-        for (let i = 0; i < 16; i++) {
+        // Initialize puzzle state (0 to totalTiles-2 for tiles, totalTiles-1 for empty)
+        for (let i = 0; i < totalTiles; i++) {
             this.puzzleState.push(i);
         }
         
         this.renderPuzzle();
         this.updateStats();
+        this.updateNumbersDisplay();
+        this.updateSettingsUI();
+        this.showStartOverlay();
         
         // Set reference image
         const referenceSrc = this.selectedImage.isGenerated ? this.selectedImage.dataUrl : this.selectedImage.src;
@@ -369,27 +492,47 @@ class KPopPuzzleGame {
     
     renderPuzzle() {
         const puzzleGrid = document.getElementById('puzzle-grid');
-        puzzleGrid.innerHTML = '';
         
-        for (let i = 0; i < 16; i++) {
+        // Preserve the start overlay
+        const startOverlay = document.getElementById('start-overlay');
+        
+        // Clear only the tile elements, not the overlay
+        const tiles = puzzleGrid.querySelectorAll('.puzzle-tile');
+        tiles.forEach(tile => tile.remove());
+        
+        // Update grid CSS
+        puzzleGrid.style.gridTemplateColumns = `repeat(${this.gridSize}, 1fr)`;
+        puzzleGrid.style.gridTemplateRows = `repeat(${this.gridSize}, 1fr)`;
+        
+        // Keep grid size constant at 400px for both 3x3 and 4x4
+        const gridPixelSize = 400;
+        puzzleGrid.style.width = `${gridPixelSize}px`;
+        puzzleGrid.style.height = `${gridPixelSize}px`;
+        
+        const totalTiles = this.gridSize * this.gridSize;
+        const emptyTileNumber = totalTiles - 1;
+        
+        for (let i = 0; i < totalTiles; i++) {
             const tile = document.createElement('div');
             tile.className = 'puzzle-tile';
             tile.dataset.position = i;
             
             const tileNumber = this.puzzleState[i];
             
-            if (tileNumber === 15) {
+            if (tileNumber === emptyTileNumber) {
                 // Empty tile
                 tile.classList.add('empty');
             } else {
                 // Calculate background position
-                const row = Math.floor(tileNumber / 4);
-                const col = tileNumber % 4;
-                const bgX = -col * 100;
-                const bgY = -row * 100;
+                const row = Math.floor(tileNumber / this.gridSize);
+                const col = tileNumber % this.gridSize;
+                const tileSize = gridPixelSize / this.gridSize;
+                const bgX = -col * tileSize;
+                const bgY = -row * tileSize;
                 
                 const imageSrc = this.selectedImage.isGenerated ? this.selectedImage.dataUrl : this.selectedImage.src;
                 tile.style.backgroundImage = `url(${imageSrc})`;
+                tile.style.backgroundSize = `${gridPixelSize}px ${gridPixelSize}px`;
                 tile.style.backgroundPosition = `${bgX}px ${bgY}px`;
                 
                 // Add tile number
@@ -408,18 +551,13 @@ class KPopPuzzleGame {
     }
     
     moveTile(position) {
-        if (!this.canMoveTile(position)) return;
+        if (!this.canMoveTile(position) || !this.gameStarted) return;
         
-        if (!this.gameStarted) {
-            this.startTimer();
-            this.gameStarted = true;
-        }
-        
-        const row = Math.floor(position / 4);
-        const col = position % 4;
+        const row = Math.floor(position / this.gridSize);
+        const col = position % this.gridSize;
         const emptyRow = this.emptyTilePosition.row;
         const emptyCol = this.emptyTilePosition.col;
-        const emptyPosition = emptyRow * 4 + emptyCol;
+        const emptyPosition = emptyRow * this.gridSize + emptyCol;
         
         // Swap tiles
         [this.puzzleState[position], this.puzzleState[emptyPosition]] = 
@@ -439,8 +577,8 @@ class KPopPuzzleGame {
     }
     
     canMoveTile(position) {
-        const row = Math.floor(position / 4);
-        const col = position % 4;
+        const row = Math.floor(position / this.gridSize);
+        const col = position % this.gridSize;
         const emptyRow = this.emptyTilePosition.row;
         const emptyCol = this.emptyTilePosition.col;
         
@@ -453,7 +591,6 @@ class KPopPuzzleGame {
     
     shufflePuzzle() {
         // Reset game state
-        this.gameStarted = false;
         this.timer = 0;
         this.moveCount = 0;
         if (this.timerInterval) {
@@ -465,14 +602,14 @@ class KPopPuzzleGame {
             const validMoves = this.getValidMoves();
             if (validMoves.length > 0) {
                 const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
-                const emptyPosition = this.emptyTilePosition.row * 4 + this.emptyTilePosition.col;
+                const emptyPosition = this.emptyTilePosition.row * this.gridSize + this.emptyTilePosition.col;
                 
                 // Swap without counting as a move
                 [this.puzzleState[randomMove], this.puzzleState[emptyPosition]] = 
                 [this.puzzleState[emptyPosition], this.puzzleState[randomMove]];
                 
-                const row = Math.floor(randomMove / 4);
-                const col = randomMove % 4;
+                const row = Math.floor(randomMove / this.gridSize);
+                const col = randomMove % this.gridSize;
                 this.emptyTilePosition = { row, col };
             }
         }
@@ -498,8 +635,8 @@ class KPopPuzzleGame {
             const newRow = emptyRow + dir.row;
             const newCol = emptyCol + dir.col;
             
-            if (newRow >= 0 && newRow < 4 && newCol >= 0 && newCol < 4) {
-                moves.push(newRow * 4 + newCol);
+            if (newRow >= 0 && newRow < this.gridSize && newCol >= 0 && newCol < this.gridSize) {
+                moves.push(newRow * this.gridSize + newCol);
             }
         });
         
@@ -507,12 +644,15 @@ class KPopPuzzleGame {
     }
     
     checkWin() {
-        for (let i = 0; i < 15; i++) {
+        const totalTiles = this.gridSize * this.gridSize;
+        const lastTileIndex = totalTiles - 1;
+        
+        for (let i = 0; i < lastTileIndex; i++) {
             if (this.puzzleState[i] !== i) {
                 return false;
             }
         }
-        return this.puzzleState[15] === 15;
+        return this.puzzleState[lastTileIndex] === lastTileIndex;
     }
     
     handleWin() {

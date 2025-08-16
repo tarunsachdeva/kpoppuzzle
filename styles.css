@@ -173,6 +173,12 @@ body {
     gap: 2rem;
 }
 
+.game-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
 .stat {
     text-align: center;
 }
@@ -199,17 +205,22 @@ body {
     max-width: 1200px;
 }
 
+.game-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
 .puzzle-container {
     background: rgba(255, 255, 255, 0.9);
     padding: 1rem;
     border-radius: 15px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .puzzle-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(4, 1fr);
     gap: 2px;
     width: 400px;
     height: 400px;
@@ -260,6 +271,11 @@ body {
     justify-content: center;
     font-size: 0.8rem;
     font-weight: bold;
+    transition: opacity 0.3s ease;
+}
+
+.puzzle-grid.hide-numbers .tile-number {
+    opacity: 0;
 }
 
 .reference-image {
@@ -280,6 +296,126 @@ body {
     height: 200px;
     object-fit: cover;
     border-radius: 10px;
+}
+
+/* Game Settings Panel */
+.game-settings {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+}
+
+.game-settings h3 {
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.setting-group {
+    margin-bottom: 1.5rem;
+}
+
+.setting-group:last-child {
+    margin-bottom: 0;
+}
+
+.setting-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 500;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+/* Custom Checkbox */
+.setting-label input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    width: 20px;
+    height: 20px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    margin-right: 0.75rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.setting-label input[type="checkbox"]:checked + .checkmark {
+    background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 6px;
+    top: 2px;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.setting-label input[type="checkbox"]:checked + .checkmark:after {
+    display: block;
+}
+
+/* Radio Buttons */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 400;
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+.radio-label input[type="radio"] {
+    display: none;
+}
+
+.radio-checkmark {
+    width: 16px;
+    height: 16px;
+    background: #e2e8f0;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.radio-label input[type="radio"]:checked + .radio-checkmark {
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+}
+
+.radio-checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    top: 4px;
+    left: 4px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: white;
+}
+
+.radio-label input[type="radio"]:checked + .radio-checkmark:after {
+    display: block;
 }
 
 /* Leaderboard */
@@ -422,10 +558,6 @@ body {
         height: 300px;
     }
     
-    .puzzle-tile {
-        background-size: 300px 300px;
-    }
-    
     .reference-image img {
         width: 150px;
         height: 150px;
@@ -454,4 +586,47 @@ body {
 
 .puzzle-grid.winning {
     animation: celebration 0.5s ease-in-out 3;
+}
+
+/* Start Game Overlay */
+.start-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+.start-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.start-btn {
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+}
+
+.start-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(255, 107, 107, 0.6);
+}
+
+.start-hint {
+    color: #718096;
+    font-size: 0.9rem;
+    text-align: center;
+    margin: 0;
 }

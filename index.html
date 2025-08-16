@@ -40,16 +40,49 @@
                     <span id="move-counter">0</span>
                 </div>
             </div>
-            <button id="shuffle-btn" class="btn primary">Shuffle</button>
         </div>
         
         <div class="game-content">
             <div class="puzzle-container">
-                <div id="puzzle-grid" class="puzzle-grid"></div>
+                <div id="puzzle-grid" class="puzzle-grid">
+                    <div id="start-overlay" class="start-overlay">
+                        <button id="shuffle-btn" class="btn primary start-btn">
+                            🎲 Start Game
+                        </button>
+                        <p class="start-hint">Click to shuffle and begin!</p>
+                    </div>
+                </div>
             </div>
-            <div class="reference-image">
-                <h3>Reference Image</h3>
-                <img id="reference-img" src="" alt="Reference">
+            <div class="game-sidebar">
+                <div class="reference-image">
+                    <h3>Reference Image</h3>
+                    <img id="reference-img" src="" alt="Reference">
+                </div>
+                <div class="game-settings">
+                    <h3>Game Settings</h3>
+                    <div class="setting-group">
+                        <label class="setting-label">
+                            <input type="checkbox" id="toggle-numbers" checked>
+                            <span class="checkmark"></span>
+                            Show Numbers
+                        </label>
+                    </div>
+                    <div class="setting-group">
+                        <label class="setting-label">Grid Size:</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="grid-size" value="3" id="grid-3x3">
+                                <span class="radio-checkmark"></span>
+                                3×3 (Easy)
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="grid-size" value="4" id="grid-4x4" checked>
+                                <span class="radio-checkmark"></span>
+                                4×4 (Normal)
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
