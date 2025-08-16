@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-Pop Puzzle Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="screen active">
+        <div class="splash-content">
+            <h1 class="game-title">🎵 K-Pop Puzzle Game 🧩</h1>
+            <p class="game-subtitle">Unscramble your favorite K-Pop images!</p>
+            <button id="start-btn" class="btn primary">Start Playing</button>
+            <button id="leaderboard-btn" class="btn secondary">Leaderboard</button>
+        </div>
+    </div>
+
+    <!-- Image Selection Screen -->
+    <div id="image-selection" class="screen">
+        <div class="selection-content">
+            <h2>Choose Your Puzzle</h2>
+            <div id="image-grid" class="image-grid"></div>
+            <button id="back-to-splash" class="btn secondary">Back</button>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="game-header">
+            <button id="back-to-selection" class="btn secondary">← Back</button>
+            <div class="game-stats">
+                <div class="stat">
+                    <span class="label">Time:</span>
+                    <span id="timer">00:00</span>
+                </div>
+                <div class="stat">
+                    <span class="label">Moves:</span>
+                    <span id="move-counter">0</span>
+                </div>
+            </div>
+            <button id="shuffle-btn" class="btn primary">Shuffle</button>
+        </div>
+        
+        <div class="game-content">
+            <div class="puzzle-container">
+                <div id="puzzle-grid" class="puzzle-grid"></div>
+            </div>
+            <div class="reference-image">
+                <h3>Reference Image</h3>
+                <img id="reference-img" src="" alt="Reference">
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Screen -->
+    <div id="leaderboard-screen" class="screen">
+        <div class="leaderboard-content">
+            <h2>🏆 Leaderboard</h2>
+            <div id="leaderboard-list" class="leaderboard-list"></div>
+            <button id="clear-scores" class="btn secondary">Clear Scores</button>
+            <button id="back-from-leaderboard" class="btn primary">Back</button>
+        </div>
+    </div>
+
+    <!-- Win Modal -->
+    <div id="win-modal" class="modal">
+        <div class="modal-content">
+            <h2>🎉 Congratulations!</h2>
+            <p>You solved the puzzle!</p>
+            <div class="win-stats">
+                <p>Time: <span id="final-time"></span></p>
+                <p>Moves: <span id="final-moves"></span></p>
+            </div>
+            <input type="text" id="player-name" placeholder="Enter your name" maxlength="20">
+            <div class="modal-buttons">
+                <button id="save-score" class="btn primary">Save Score</button>
+                <button id="play-again" class="btn secondary">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
